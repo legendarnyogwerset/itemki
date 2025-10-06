@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inwentarz QR - System zarządzania</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="app-header">
+            <h1>Inwentarz QR</h1>
+            <div class="header-status">
+                <span class="status-indicator" id="scannerStatus">Gotowy</span>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="app-main">
+            <!-- Scanner Tab -->
+            <section id="scanner-tab" class="tab-content active">
+                <div class="scanner-controls">
+                    <div class="scanner-modes">
+                        <button class="btn btn--primary mode-btn active" data-mode="normal">
+                            <span>📱</span> Normalny
+                        </button>
+                        <button class="btn btn--outline mode-btn" data-mode="batch">
+                            <span>📦</span> Tryb Batch
+                        </button>
+                    </div>
+
+                    <!-- Batch Mode Controls -->
+                    <div class="batch-controls hidden" id="batchControls">
+                        <div class="batch-setup">
+                            <label class="form-label">Wybierz pudełko dla trybu batch:</label>
+                            <div class="batch-selector">
+                                <select class="form-control" id="batchBoxSelect">
+                                    <option value="">-- Wybierz pudełko --</option>
+                                </select>
+                                <button class="btn btn--secondary btn--sm" id="addNewBoxBtn">+ Nowe</button>
+                            </div>
+                        </div>
+                        
+                        <div class="batch-session hidden" id="batchSession">
+                            <div class="session-header">
+                                <h3>Sesja batch: <span id="sessionBoxName"></span></h3>
+                                <div class="session-controls">
+                                    <span class="scan-counter">Zeskanowano: <strong id="scannedCount">0</strong></span>
+                                    <button class="btn btn--sm btn--outline" id="undoLastBtn" disabled>↶ Cofnij</button>
+                                    <button class="btn btn--sm btn--primary" id="endBatchBtn">✓ Zakończ</button>
+                                </div>
+                            </div>
+                            <div class="scanned-list" id="scannedItemsList"></div>
+                        </div>
+                    </div>
+
+                    <div class="camera-actions">
+                        <button class="btn btn--primary btn--lg" id="startScanBtn">
+                            <span>📷</span> Rozpocznij skanowanie
+                        </button>
+                        <button class="btn btn--secondary hidden" id="stopScanBtn">
+                            <span>⏹</span> Zatrzymaj
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Camera Container - small and compact -->
+                <div class="camera-container hidden" id="cameraContainer">
+                    <div class="camera-viewport">
+                        <video id="video" autoplay playsinline muted></video>
+                        <canvas id="canvas" style="display: none;"></canvas>
+                        <div class="scan-overlay">
+                            <div class="scan-frame"></div>
+                            <p class="scan-instruction" id="scanInstruction">Skieruj kamerę na kod QR</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Lista Tab -->
+            <section id="lista-tab" class="tab-content">
+                <div class="list-header">
+                    <h2>Lista przedmiotów</h2>
+                    <div class="search-filters">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Szukaj przedmiotów...">
+                        <select class="form-control" id="filterBox">
+                            <option value="">Wszystkie pudełka</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="items-container">
+                    <div class="items-grid" id="itemsList">
+                        <!-- Items will be populated here -->
+                    </div>
+                </div>
+
+                <div class="section-separator"></div>
+
+                <!-- Box Management Section -->
+                <div class="boxes-section">
+                    <div class="boxes-header">
+                        <h2>Zarządzanie pudełkami</h2>
+                        <button class="btn btn--primary" id="addBoxModalBtn">+ Dodaj pudełko</button>
+                    </div>
+                    
+                    <div class="boxes-grid" id="boxesList">
+                        <!-- Boxes will be populated here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Eksport Tab -->
+            <section id="eksport-tab" class="tab-content">
+                <div class="export-section">
+                    <h2>Eksport danych</h2>
+                    
+                    <div class="export-options">
+                        <div class="export-card">
+                            <h3>📊 Eksport CSV</h3>
+                            <p>Pobierz wszystkie dane w formacie CSV</p>
+                            <div class="export-settings">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="includeEmpty" checked> Uwzględnij puste przedmioty
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="includeBoxInfo" checked> Informacje o pudełkach
+                                </label>
+                            </div>
+                            <button class="btn btn--primary" id="exportCsvBtn">Pobierz CSV</button>
+                        </div>
+
+                        <div class="export-card">
+                            <h3>📱 Eksport JSON</h3>
+                            <p>Pobierz dane w formacie JSON</p>
+                            <button class="btn btn--primary" id="exportJsonBtn">Pobierz JSON</button>
+                        </div>
+
+                        <div class="export-card">
+                            <h3>📋 Kopiuj</h3>
+                            <p>Skopiuj dane do schowka</p>
+                            <div class="copy-buttons">
+                                <button class="btn btn--outline btn--sm" id="copyTsvBtn">TSV</button>
+                                <button class="btn btn--outline btn--sm" id="copyJsonBtn">JSON</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-separator"></div>
+
+                <!-- Import Section -->
+                <div class="import-section">
+                    <h2>Import danych</h2>
+                    
+                    <div class="import-methods">
+                        <div class="import-card">
+                            <h3>📄 CSV Import</h3>
+                            <p>Importuj dane z pliku CSV</p>
+                            <input type="file" id="csvFileInput" accept=".csv" class="hidden">
+                            <button class="btn btn--outline" onclick="document.getElementById('csvFileInput').click()">
+                                Wybierz plik CSV
+                            </button>
+                        </div>
+
+                        <div class="import-card">
+                            <h3>📱 JSON Import</h3>
+                            <p>Importuj dane z pliku JSON</p>
+                            <input type="file" id="jsonFileInput" accept=".json" class="hidden">
+                            <button class="btn btn--outline" onclick="document.getElementById('jsonFileInput').click()">
+                                Wybierz plik JSON
+                            </button>
+                        </div>
+
+                        <div class="import-card">
+                            <h3>📝 Schowek</h3>
+                            <p>Wklej dane ze schowka</p>
+                            <textarea class="form-control" id="clipboardInput" placeholder="Wklej dane tutaj..." rows="4"></textarea>
+                            <button class="btn btn--outline" id="parseClipboardBtn">Analizuj</button>
+                        </div>
+                    </div>
+
+                    <!-- Import Preview -->
+                    <div class="import-preview hidden" id="importPreview">
+                        <h3>Podgląd importu</h3>
+                        <div class="preview-stats" id="previewStats"></div>
+                        <div class="preview-data" id="previewData"></div>
+                        <div class="import-actions">
+                            <button class="btn btn--primary" id="confirmImportBtn">Potwierdź import</button>
+                            <button class="btn btn--secondary" id="cancelImportBtn">Anuluj</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-separator"></div>
+
+                <!-- Statistics -->
+                <div class="stats-section">
+                    <h3>Statystyki</h3>
+                    <div class="stats-grid" id="exportStats">
+                        <!-- Stats will be populated here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-tab="scanner">
+                <span class="nav-icon">📷</span>
+                <span class="nav-label">Scanner</span>
+            </button>
+            <button class="nav-btn" data-tab="lista">
+                <span class="nav-icon">📋</span>
+                <span class="nav-label">Lista</span>
+            </button>
+            <button class="nav-btn" data-tab="eksport">
+                <span class="nav-icon">📤</span>
+                <span class="nav-label">Eksport</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Item Scan Modal -->
+    <div class="modal hidden" id="itemScanModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="scanModalTitle">Zeskanowany przedmiot</h3>
+                <button class="modal-close" id="closeScanModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="scanned-item-info">
+                    <div class="item-serial-display" id="scannedSerial">DOM000</div>
+                    <div class="item-name-display" id="scannedItemName">Nazwa przedmiotu</div>
+                    <div class="item-box-display" id="scannedItemBox">📦 Pudełko</div>
+                    <div class="item-last-seen" id="scannedLastSeen">Ostatnio widziany</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--secondary" id="scanBoxBtn">📦 Skanuj pudełko</button>
+                <button class="btn btn--outline" id="editItemBtn">✏️ Edytuj</button>
+                <button class="btn btn--primary" id="continueScanBtn">Kontynuuj skanowanie</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Box Modal -->
+    <div class="modal hidden" id="addBoxModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Dodaj nowe pudełko</h3>
+                <button class="modal-close" id="closeAddBoxModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="addBoxForm">
+                    <div class="form-group">
+                        <label class="form-label">Kod pudełka:</label>
+                        <input type="text" class="form-control" id="boxCodeInput" placeholder="np. BOX06" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nazwa:</label>
+                        <input type="text" class="form-control" id="boxNameInput" placeholder="np. Pudełko biuro" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Lokalizacja:</label>
+                        <input type="text" class="form-control" id="boxLocationInput" placeholder="np. Biuro">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--primary" id="saveBoxBtn">Zapisz</button>
+                <button class="btn btn--secondary" id="cancelAddBoxBtn">Anuluj</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Item Modal -->
+    <div class="modal hidden" id="editItemModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edytuj przedmiot</h3>
+                <button class="modal-close" id="closeEditItemModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="editItemForm">
+                    <div class="form-group">
+                        <label class="form-label">Kod serialny:</label>
+                        <input type="text" class="form-control" id="editSerial" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nazwa przedmiotu:</label>
+                        <input type="text" class="form-control" id="editItemName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Pudełko:</label>
+                        <select class="form-control" id="editItemBox">
+                            <option value="">-- Bez przypisania --</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--primary" id="saveItemBtn">Zapisz</button>
+                <button class="btn btn--secondary" id="cancelEditItemBtn">Anuluj</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast hidden" id="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
