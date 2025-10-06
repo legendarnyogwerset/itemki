@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zarządzanie Inwentarzem</title>
+    <title>SPIS MOCNYCH ITEMKÓW</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
 </head>
@@ -12,7 +12,7 @@
         <!-- Navigation -->
         <nav class="nav">
             <div class="nav__brand">
-                <h1 class="nav__title">Zarządzanie Inwentarzem</h1>
+                <h1 class="nav__title">Zarządzanie</h1>
             </div>
             <div class="nav__tabs">
                 <button class="nav__tab" data-tab="scanner">
@@ -40,12 +40,12 @@
             <div class="tab-content" id="scanner-tab">
                 <div class="scanner-section">
                     <div class="scanner-controls">
-                        <h2>Skaner QR</h2>
+                        <h2>Skanuj</h2>
                         <div class="form-group">
                             <label class="form-label">Tryb skanowania:</label>
                             <select id="scan-mode" class="form-control">
                                 <option value="normal">Normalny</option>
-                                <option value="batch">Wsadowy</option>
+                                <option value="batch">Batch</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -55,8 +55,8 @@
                             </select>
                         </div>
                         <div style="display: flex; gap: var(--space-12);">
-                            <button id="start-scan" class="btn btn--primary">Uruchom skaner</button>
-                            <button id="stop-scan" class="btn btn--secondary" style="display: none;">Zatrzymaj skaner</button>
+                            <button id="start-scan" class="btn btn--primary">Uruchom</button>
+                            <button id="stop-scan" class="btn btn--secondary" style="display: none;">Zatrzymaj</button>
                         </div>
                     </div>
                     <div id="qr-reader" class="qr-reader"></div>
@@ -116,7 +116,7 @@
                         <thead>
                             <tr>
                                 <th class="sortable" data-sort="serial">
-                                    Numer seryjny <span class="sort-indicator"></span>
+                                    Serial <span class="sort-indicator"></span>
                                 </th>
                                 <th class="sortable" data-sort="item">
                                     Nazwa przedmiotu <span class="sort-indicator"></span>
@@ -148,11 +148,11 @@
             <!-- Eksport Tab -->
             <div class="tab-content" id="eksport-tab">
                 <div class="export-section">
-                    <h2>Eksport danych</h2>
+                    <h2>Eksport</h2>
                     <div class="export-options">
                         <div class="card">
                             <div class="card__header">
-                                <h3>Eksport JSON</h3>
+                                <h3>JSON</h3>
                             </div>
                             <div class="card__body">
                                 <p>Eksportuj wszystkie dane w formacie JSON wraz z pudełkami i ustawieniami.</p>
@@ -163,7 +163,7 @@
                         </div>
                         <div class="card">
                             <div class="card__header">
-                                <h3>Eksport CSV</h3>
+                                <h3>CSV</h3>
                             </div>
                             <div class="card__body">
                                 <p>Eksportuj listę przedmiotów w formacie CSV dla arkuszy kalkulacyjnych.</p>
@@ -183,7 +183,7 @@
                     <div class="import-options">
                         <div class="card">
                             <div class="card__header">
-                                <h3>Import JSON</h3>
+                                <h3>JSON</h3>
                             </div>
                             <div class="card__body">
                                 <p>Importuj kompletne dane z pliku JSON (przedmioty i pudełka).</p>
@@ -197,7 +197,7 @@
                         </div>
                         <div class="card">
                             <div class="card__header">
-                                <h3>Import CSV</h3>
+                                <h3>CSV</h3>
                             </div>
                             <div class="card__body">
                                 <p>Importuj listę przedmiotów z pliku CSV.</p>
